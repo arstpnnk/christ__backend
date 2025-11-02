@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    # Format: jdbc:postgresql://HOST:PORT/DB_NAME
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/backend_db}
+    # Example: postgres
+    username: ${DB_USERNAME:postgres}
+    # Your local Postgres password (string). Prefer setting via env `DB_PASSWORD`
+    # or in `application-local.yml` with `SPRING_PROFILES_ACTIVE=local`.
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            # Google OAuth Client ID (looks like: 12345-abcdefg.apps.googleusercontent.com)
+            # Set via env `GOOGLE_CLIENT_ID` or in `application-local.yml`.
+            client-id: ${GOOGLE_CLIENT_ID:}
+            # Google OAuth Client Secret (looks like: GOCSPX-xxxxxxxxxxxxxxxxxxxx)
+            # Set via env `GOOGLE_CLIENT_SECRET` or in `application-local.yml`.
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+
+app:
+  jwt:
+    # Base64-encoded secret, 32+ bytes (JWT signing key). Set via env `APP_JWT_SECRET`
+    # or in `application-local.yml`. No quotes required unless you add special chars.
+    secret: ${APP_JWT_SECRET:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}
+  frontend:
+    callback: ${APP_FRONTEND_CALLBACK:http://localhost:3000/oauth2/redirect}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
