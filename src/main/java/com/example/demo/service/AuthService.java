@@ -43,7 +43,9 @@ public class AuthService {
             return null;
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if(user.getProvider() == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         user.setRole(isFileUploaded ? Role.PRIEST : Role.USER);
         try {
             User saved = userRepository.save(user);
@@ -78,5 +80,13 @@ public class AuthService {
         }
 
         return jwtUtil.generateToken(user.getEmail(), idLong);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }

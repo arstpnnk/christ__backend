@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import com.example.demo.model.ChatMessage;
 import com.example.demo.model.User;
 
@@ -31,6 +33,14 @@ public class ForumPost {
     @OneToMany(mappedBy = "forumPost", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ChatMessage> messages;
+
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int likes = 0;
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int dislikes = 0;
+
+    @ManyToMany(mappedBy = "likedPosts")
+    private Set<User> usersWhoLiked = new HashSet<>();
 
     public ForumPost() {
         this.createdAt = LocalDateTime.now();
@@ -83,5 +93,29 @@ public class ForumPost {
 
     public void setMessages(List<ChatMessage> messages) {
         this.messages = messages;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public int getDislikes() {
+        return dislikes;
+    }
+
+    public void setDislikes(int dislikes) {
+        this.dislikes = dislikes;
+    }
+
+    public Set<User> getUsersWhoLiked() {
+        return usersWhoLiked;
+    }
+
+    public void setUsersWhoLiked(Set<User> usersWhoLiked) {
+        this.usersWhoLiked = usersWhoLiked;
     }
 }

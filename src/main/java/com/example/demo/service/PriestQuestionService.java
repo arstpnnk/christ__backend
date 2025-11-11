@@ -25,6 +25,9 @@ public class PriestQuestionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public List<PriestQuestion> getAllQuestions() {
         return priestQuestionRepository.findAll();
     }
@@ -51,20 +54,25 @@ public class PriestQuestionService {
     }
 
     public PriestQuestionReply addReplyToQuestion(Long questionId, String content, String authorEmail) {
-        Optional<PriestQuestion> question = priestQuestionRepository.findById(questionId);
-        if (question.isEmpty()) {
-            throw new RuntimeException("Priest question not found");
-        }
-        Optional<User> author = userRepository.findByEmail(authorEmail);
-        if (author.isEmpty()) {
-            throw new RuntimeException("Author not found");
-        }
+        PriestQuestion question = priestQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Priest question not found"));
+        User author = userRepository.findByEmail(authorEmail)
+                .orElseThrow(() -> new RuntimeException("Author not found"));
 
         PriestQuestionReply reply = new PriestQuestionReply();
-        reply.setQuestion(question.get());
-        reply.setAuthor(author.get());
+        reply.setQuestion(question);
+        reply.setAuthor(author);
         reply.setContent(content);
         reply.setCreatedAt(LocalDateTime.now());
-        return priestQuestionReplyRepository.save(reply);
+        
+        PriestQuestionReply savedReply = priestQuestionReplyRepository.save(reply);
+
+        // Уведомляем автора вопроса
+        if (!question.getAuthor().getEmail().equals(authorEmail)) {
+            String notificationMessage = "Священник ответил на ваш вопрос: " + question.getTitle();
+            notificationService.createNotification(question.getAuthor(), notificationMessage, "PRIEST_REPLY");
+        }
+
+        return savedReply;
     }
 }
