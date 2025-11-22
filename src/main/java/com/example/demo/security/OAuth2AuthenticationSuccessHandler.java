@@ -28,13 +28,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        User user = authService.findByEmail(email).orElseGet(() -> {
+        User user = authService.findByEmail(email);
+        if (user == null) {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setName(oAuth2User.getAttribute("name"));
             newUser.setProvider(com.example.demo.model.AuthProvider.GOOGLE);
-            return authService.save(newUser);
-        });
+            user = authService.save(newUser);
+        }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getId());
         String redirectUrl = "christ://auth?token=" + token;

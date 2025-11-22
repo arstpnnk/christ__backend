@@ -32,6 +32,7 @@ public class SecurityConfig {
             .csrf().disable()
             .authorizeHttpRequests(authorize -> authorize
                 .antMatchers("/auth/**", "/oauth2/**", "/h2-console/**", "/login", "/error").permitAll()
+                .antMatchers("/users/me").authenticated()
                 .antMatchers("/files/upload", "/forum/**", "/chat/**").authenticated()
                 .anyRequest().authenticated()
             )
