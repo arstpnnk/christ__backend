@@ -29,7 +29,7 @@ public class ForumService {
     private NotificationService notificationService;
 
     public List<ForumPost> getAllPosts() {
-        return forumPostRepository.findAll();
+        return forumPostRepository.findAllByOrderByCreatedAtAsc();
     }
 
     public Optional<ForumPost> getPostById(Long id) {

@@ -29,7 +29,7 @@ public class PriestQuestionService {
     private NotificationService notificationService;
 
     public List<PriestQuestion> getAllQuestions() {
-        return priestQuestionRepository.findAll();
+        return priestQuestionRepository.findAllByOrderByCreatedAtAsc();
     }
 
     public Optional<PriestQuestion> getQuestionById(Long id) {

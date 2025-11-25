@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PriestQuestionRepository extends JpaRepository<PriestQuestion, Long> {
     List<PriestQuestion> findByAuthorId(Long authorId);
+    List<PriestQuestion> findAllByOrderByCreatedAtAsc();
 }
