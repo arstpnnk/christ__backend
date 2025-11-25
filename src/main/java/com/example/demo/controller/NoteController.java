@@ -35,10 +35,36 @@ public class NoteController {
         return notes.findByUser(u);
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal UserDetails principal) {
-        Note n = notes.findById(id).orElseThrow();
-        if (!n.getUser().getEmail().equals(principal.getUsername())) throw new RuntimeException("forbidden");
-        notes.deleteById(id);
+    
+
+        @DeleteMapping("/{id}")
+
+        public void delete(@PathVariable Long id, @AuthenticationPrincipal UserDetails principal) {
+
+            Note n = notes.findById(id).orElseThrow();
+
+            if (!n.getUser().getEmail().equals(principal.getUsername())) throw new RuntimeException("forbidden");
+
+            notes.deleteById(id);
+
+        }
+
+    
+
+        @PutMapping("/{id}")
+
+        public Note update(@PathVariable Long id, @RequestBody Note note, @AuthenticationPrincipal UserDetails principal) {
+
+            Note n = notes.findById(id).orElseThrow();
+
+            if (!n.getUser().getEmail().equals(principal.getUsername())) throw new RuntimeException("forbidden");
+
+            n.setContent(note.getContent());
+
+            return notes.save(n);
+
+        }
+
     }
-}
+
+    
