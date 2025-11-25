@@ -25,8 +25,11 @@ public class ForumService {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public List<ForumPost> getAllPosts() {
-        return forumPostRepository.findAll();
+        return forumPostRepository.findAllByOrderByCreatedAtAsc();
     }
 
     public Optional<ForumPost> getPostById(Long id) {
@@ -38,21 +41,38 @@ public class ForumService {
     }
 
     public ChatMessage addMessageToForumPost(Long postId, String content, String senderEmail) {
-        Optional<ForumPost> forumPost = forumPostRepository.findById(postId);
-        if (forumPost.isEmpty()) {
-            throw new RuntimeException("Forum post not found");
-        }
-        Optional<User> sender = userRepository.findByEmail(senderEmail);
-        if (sender.isEmpty()) {
-            throw new RuntimeException("Sender not found");
-        }
+        ForumPost forumPost = forumPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Forum post not found"));
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
 
         ChatMessage message = new ChatMessage();
-        message.setForumPost(forumPost.get());
-        message.setSender(sender.get());
+        message.setForumPost(forumPost);
+        message.setSender(sender);
         message.setContent(content);
         message.setTimestamp(LocalDateTime.now());
-        return chatMessageRepository.save(message);
+        
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+
+        // Уведомляем всех участников обсуждения
+        List<User> participants = chatMessageRepository.findByForumPostId(postId)
+                .stream()
+                .map(ChatMessage::getSender)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+
+        if (!participants.contains(forumPost.getAuthor())) {
+            participants.add(forumPost.getAuthor());
+        }
+
+        for (User participant : participants) {
+            if (!participant.getEmail().equals(senderEmail)) {
+                String notificationMessage = sender.getName() + " прокомментировал пост: " + forumPost.getTitle();
+                notificationService.createNotification(participant, notificationMessage, "FORUM");
+            }
+        }
+        
+        return savedMessage;
     }
 
     public ForumPost createPost(String title, String content, String authorEmail) {
@@ -69,5 +89,67 @@ public class ForumService {
 
     public void deletePost(Long id) {
         forumPostRepository.deleteById(id);
+    }
+
+    public ForumPost likePost(Long postId, String userEmail) {
+        ForumPost post = forumPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (post.getUsersWhoLiked().contains(user)) {
+            post.getUsersWhoLiked().remove(user);
+            post.setLikes(post.getLikes() - 1);
+        } else {
+            post.getUsersWhoLiked().add(user);
+            post.setLikes(post.getLikes() + 1);
+        }
+        return forumPostRepository.save(post);
+    }
+
+    public ForumPost dislikePost(Long postId, String userEmail) {
+        ForumPost post = forumPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // For simplicity, we'll just increment the dislike count.
+        // A more complex implementation would track which users have disliked the post.
+        post.setDislikes(post.getDislikes() + 1);
+        return forumPostRepository.save(post);
+    }
+
+    public ChatMessage likeMessage(Long messageId, String userEmail) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (message.getUsersWhoLiked().contains(user)) {
+            message.getUsersWhoLiked().remove(user);
+        } else {
+            message.getUsersWhoLiked().add(user);
+            message.getUsersWhoDisliked().remove(user);
+        }
+        message.setLikes(message.getUsersWhoLiked().size());
+        message.setDislikes(message.getUsersWhoDisliked().size());
+        return chatMessageRepository.save(message);
+    }
+
+    public ChatMessage dislikeMessage(Long messageId, String userEmail) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (message.getUsersWhoDisliked().contains(user)) {
+            message.getUsersWhoDisliked().remove(user);
+        } else {
+            message.getUsersWhoDisliked().add(user);
+            message.getUsersWhoLiked().remove(user);
+        }
+        message.setLikes(message.getUsersWhoLiked().size());
+        message.setDislikes(message.getUsersWhoDisliked().size());
+        return chatMessageRepository.save(message);
     }
 }

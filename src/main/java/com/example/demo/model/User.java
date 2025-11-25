@@ -1,6 +1,11 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -22,6 +27,23 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ForumPost> forumPosts;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Notification> notifications;
+
+    @ManyToMany
+    @JoinTable(
+            name = "forum_post_likes",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "forum_post_id")
+    )
+    @JsonIgnore
+    private Set<ForumPost> likedPosts = new HashSet<>();
 
     public User() {}
 
@@ -55,4 +77,28 @@ public class User {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public List<ForumPost> getForumPosts() {
+        return forumPosts;
+    }
+
+    public void setForumPosts(List<ForumPost> forumPosts) {
+        this.forumPosts = forumPosts;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
+    }
+
+    public Set<ForumPost> getLikedPosts() {
+        return likedPosts;
+    }
+
+    public void setLikedPosts(Set<ForumPost> likedPosts) {
+        this.likedPosts = likedPosts;
+    }
 }

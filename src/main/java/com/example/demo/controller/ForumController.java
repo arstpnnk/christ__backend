@@ -64,5 +64,57 @@ public class ForumController {
         forumService.deletePost(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<ForumPost> likePost(@PathVariable Long postId, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        try {
+            ForumPost updatedPost = forumService.likePost(postId, principal.getName());
+            return ResponseEntity.ok(updatedPost);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/{postId}/dislike")
+    public ResponseEntity<ForumPost> dislikePost(@PathVariable Long postId, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        try {
+            ForumPost updatedPost = forumService.dislikePost(postId, principal.getName());
+            return ResponseEntity.ok(updatedPost);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/{postId}/messages/{messageId}/like")
+    public ResponseEntity<ChatMessage> likeMessage(@PathVariable Long postId, @PathVariable Long messageId, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        try {
+            ChatMessage updatedMessage = forumService.likeMessage(messageId, principal.getName());
+            return ResponseEntity.ok(updatedMessage);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/{postId}/messages/{messageId}/dislike")
+    public ResponseEntity<ChatMessage> dislikeMessage(@PathVariable Long postId, @PathVariable Long messageId, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        try {
+            ChatMessage updatedMessage = forumService.dislikeMessage(messageId, principal.getName());
+            return ResponseEntity.ok(updatedMessage);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }
 

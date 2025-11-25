@@ -43,7 +43,9 @@ public class AuthService {
             return null;
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if(user.getProvider() == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         user.setRole(isFileUploaded ? Role.PRIEST : Role.USER);
         try {
             User saved = userRepository.save(user);
@@ -78,5 +80,19 @@ public class AuthService {
         }
 
         return jwtUtil.generateToken(user.getEmail(), idLong);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }
