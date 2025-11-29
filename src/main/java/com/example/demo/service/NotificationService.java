@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotificationService {
@@ -31,6 +32,11 @@ public class NotificationService {
     }
 
     public void markAsRead(Long notificationId) {
-        notificationRepository.deleteById(notificationId);
+        Optional<Notification> optionalNotification = notificationRepository.findById(notificationId);
+        if (optionalNotification.isPresent()) {
+            Notification notification = optionalNotification.get();
+            notification.setRead(true);
+            notificationRepository.save(notification);
+        }
     }
 }
