@@ -1,0 +1,13 @@
+# IntelliJ / IDE
+.idea/
+*.iml
+
+# Build output
+target/
+
+# Runtime uploads
+uploads/
+
+# Local secrets (do not commit)
+src/main/resources/application-local.yml
+
