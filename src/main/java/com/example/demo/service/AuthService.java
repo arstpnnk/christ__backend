@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
+import com.example.demo.model.AuthProvider;
 import com.example.demo.model.User;
 import com.example.demo.model.Role;
 
@@ -94,5 +95,21 @@ public class AuthService {
 
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("new_password_required");
+        }
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("user_not_found"));
+        if (user.getProvider() == AuthProvider.GOOGLE) {
+            throw new IllegalArgumentException("oauth_user_no_password");
+        }
+        if (user.getPassword() == null || !passwordEncoder.matches(oldPassword == null ? "" : oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("invalid_old_password");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
