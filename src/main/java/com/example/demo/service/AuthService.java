@@ -61,14 +61,29 @@ public class AuthService {
 
  
     public String loginUser(String email, String password) {
-        Optional<User> opt = userRepository.findByEmail(email);
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+        String rawPassword = password == null ? "" : password;
+        if (normalizedEmail == null || normalizedEmail.isEmpty()) return null;
+
+        Optional<User> opt = userRepository.findByEmail(normalizedEmail);
         if (opt.isEmpty()) return null;
         User user = opt.get();
 
-      
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            return null;
+        String storedPassword = user.getPassword();
+        if (storedPassword == null) return null;
+
+        boolean ok;
+        // Backward-compatibility: if old accounts stored plaintext passwords, allow login once and upgrade to BCrypt.
+        if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+            ok = passwordEncoder.matches(rawPassword, storedPassword);
+        } else {
+            ok = storedPassword.equals(rawPassword);
+            if (ok) {
+                user.setPassword(passwordEncoder.encode(rawPassword));
+                userRepository.save(user);
+            }
         }
+        if (!ok) return null;
 
        
         long idLong = 0L;
