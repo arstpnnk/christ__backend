@@ -2,8 +2,11 @@
 # Never commit `application-local.yml` (it is ignored by `.gitignore`).
 spring:
   datasource:
+    # Format: jdbc:postgresql://HOST:PORT/DB_NAME
     url: jdbc:postgresql://localhost:5432/backend_db
+    # Example: postgres
     username: postgres
+    # Your local Postgres password (string)
     password: YOUR_DB_PASSWORD
 
   security:
@@ -11,10 +14,12 @@ spring:
       client:
         registration:
           google:
+            # Looks like: 12345-abcdefg.apps.googleusercontent.com
             client-id: YOUR_GOOGLE_CLIENT_ID
+            # Looks like: GOCSPX-xxxxxxxxxxxxxxxxxxxx
             client-secret: YOUR_GOOGLE_CLIENT_SECRET
 
 app:
   jwt:
-    # Must be base64-encoded 32+ bytes.
+    # Must be base64-encoded 32+ bytes (JWT signing key).
     secret: YOUR_BASE64_JWT_SECRET
